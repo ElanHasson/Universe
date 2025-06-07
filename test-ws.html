@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebSocket Test</title>
+</head>
+<body>
+    <h1>WebSocket Test</h1>
+    <div id="status">Connecting...</div>
+    <div id="messages"></div>
+    <button onclick="getSnapshot()">Get Snapshot</button>
+    <button onclick="createProton()">Create Proton</button>
+    
+    <script>
+        const ws = new WebSocket('ws://localhost:5000/ws');
+        const status = document.getElementById('status');
+        const messages = document.getElementById('messages');
+        
+        ws.onopen = () => {
+            status.textContent = 'Connected';
+            console.log('Connected to WebSocket');
+        };
+        
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            console.log('Received:', data);
+            const msg = document.createElement('div');
+            msg.textContent = `${new Date().toLocaleTimeString()} - ${data.type}: ${JSON.stringify(data.payload).substring(0, 100)}...`;
+            messages.insertBefore(msg, messages.firstChild);
+        };
+        
+        ws.onerror = (error) => {
+            status.textContent = 'Error: ' + error;
+            console.error('WebSocket error:', error);
+        };
+        
+        ws.onclose = () => {
+            status.textContent = 'Disconnected';
+            console.log('Disconnected from WebSocket');
+        };
+        
+        function getSnapshot() {
+            ws.send(JSON.stringify({ type: 'getSnapshot' }));
+        }
+        
+        function createProton() {
+            ws.send(JSON.stringify({ 
+                type: 'createParticle',
+                payload: { type: 'proton', position: { x: 0, y: 0, z: 0 } }
+            }));
+        }
+    </script>
+</body>
+</html>
